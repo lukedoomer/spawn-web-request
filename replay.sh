@@ -1,12 +1,46 @@
 #!/bin/bash
-if [ $# -ne 1 ]
-        then
-                echo "$0 <saved flow to replay>"
-                exit 1
+flag=false
+
+usage()
+{
+	echo "$0 -f <saved flow to replay> [-d <delay up to random seconds>] [-c <condition to stop>]"
+	exit 1	
+}
+
+while getopts "f:c:d:" opt; do
+	case $opt in
+	f)
+		flag=true
+		flow=$OPTARG
+		;;
+	d)
+		delay=$OPTARG
+		;;
+	c)
+		condition=$OPTARG
+		;;
+	\?)
+		usage
+		;;
+	esac
+done
+
+if ! $flag; then
+	usage
 fi
 
-# sleep random seconds to avoid peak load
-sleep 0.$[$RANDOM % 1000]
-docker exec -i pentest mitmdump -n -c $1 --anticache
+# delay random seconds to avoid peak load
+if [ $delay ]; then
+	sleep $[$RANDOM % $delay].$[$RANDOM % 10]
+fi
+result=`docker exec -i pentest mitmdump -n -c $flow --anticache`
 # ouput the completed time
-date '+%Y/%m/%d %H:%M:%S'
+datetime=`date '+%Y/%m/%d %H:%M:%S'`
+printf "$datetime\t$result\n"
+if [ "$condition" ]; then
+	if [[ $result =~ $condition ]]; then
+		exit 0
+	else
+		exit 1
+	fi
+fi

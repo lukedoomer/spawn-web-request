@@ -5,4 +5,4 @@ You need to have paralle and [mitmproxy](https://github.com/mitmproxy/mitmproxy)
 Also you need to know [how to use](http://docs.mitmproxy.org/en/stable/tutorials/30second.html) mitmproxy to record.<br>
 Once you save the flow which you want to replay, type
 
-`./parallel_run.sh "./replay.sh <saved flow to replay>" <number of instances>`
+`./parallel_run.sh -n <number of instances> -e './replay.sh -f <saved flow to replay> -d <delay up to random seconds> -c \"<condition to stop>\"'`
