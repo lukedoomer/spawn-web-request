@@ -3,7 +3,7 @@ flag=false
 
 usage()
 {
-	echo "$0 -f <saved flow to replay> [-d <delay up to random seconds>] [-c <condition to stop>]"
+	echo "$0 -f <curl script to replay> [-d <delay up to random seconds>] [-c <condition to stop>]"
 	exit 1	
 }
 
@@ -11,7 +11,7 @@ while getopts "f:c:d:" opt; do
 	case $opt in
 	f)
 		flag=true
-		flow=$OPTARG
+		curl=$OPTARG
 		;;
 	d)
 		delay=$OPTARG
@@ -33,14 +33,14 @@ fi
 if [ $delay ]; then
 	sleep $[$RANDOM % $delay].$[$RANDOM % 10]
 fi
-result=`docker exec -i pentest mitmdump -n -c $flow --anticache`
+result=`sh $curl`
 # ouput the completed time
 datetime=`date '+%Y/%m/%d %H:%M:%S'`
 printf "$datetime\t$result\n"
-if [ "$condition" ]; then
-	if [[ $result =~ $condition ]]; then
-		exit 0
-	else
-		exit 1
-	fi
+if [ -z "$condition" ]; then
+	exit 1
+elif [[ $result =~ $condition ]]; then
+	exit 0
+else
+	exit 1
 fi
